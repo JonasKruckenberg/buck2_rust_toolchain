@@ -6,7 +6,7 @@ Add this repo as an external cell in your projects .buckconfig
 
 ```ini
 [cells]
-  rust = oci
+  rust = rust
 
 [external_cells]
   rust = git
