@@ -36,11 +36,11 @@ _DEFAULT_TRIPLE = select({
 })
 
 # Map from component name to the binary path inside the extracted tarball
-_COMPONENT_BINARIES = {
-    "rustc": ["rustc/bin/rustc", "rustc/bin/rust-gdb", "rustc/bin/rust-gdbui", "rustc/bin/rust-lldb", "rustc/bin/rustdoc"],
-    "cargo": ["cargo/bin/cargo"],
-    "clippy-preview": ["clippy-preview/bin/clippy-driver"],
-    "rustfmt-preview": ["rustfmt-preview/bin/rustfmt"],
+_COMPONENT_ARTIFACTS = {
+    "rustc": ["rustc/bin/rustc", "rustc/bin/rust-gdb", "rustc/bin/rust-gdbgui", "rustc/bin/rust-lldb", "rustc/bin/rustdoc"],
+    "cargo": ["cargo/bin/cargo", "cargo/etc/bash_completion.d/cargo", "cargo/share/doc/cargo"],
+    "clippy-preview": ["clippy-preview/bin/cargo-clippy", "clippy-preview/bin/clippy-driver", "clippy-preview/share/doc/clippy"],
+    "rustfmt-preview": ["rustfmt-preview/bin/cargo-fmt", "rustfmt-preview/bin/rustfmt"],
     "miri-preview": ["miri-preview/bin/miri"],
     "rust-analyzer-preview": ["rust-analyzer-preview/bin/rust-analyzer"],
     "llvm-tools-preview": ["llvm-tools-preview/bin/llvm-objdump"],
@@ -74,6 +74,7 @@ def _rust_toolchain_impl(
         resolved_components.append(actual)
 
     sub_targets = {}
+    sysroot_srcs = {}
     for component_name in resolved_components:
         pkg = manifest.pkgs.get(component_name, None)
         if pkg == None:
@@ -94,18 +95,25 @@ def _rust_toolchain_impl(
         short_name = _SHORT_NAMES.get(component_name, component_name)
         sub_targets[short_name] = [DefaultInfo(default_output = component)]
 
-        binaries = _COMPONENT_BINARIES.get(component_name, [])
+        artifacts = _COMPONENT_ARTIFACTS.get(component_name, [])
 
-        for binary_path in binaries:
-            binary_name = binary_path.split("/").pop()
-            short_name = _SHORT_NAMES.get(binary_name, binary_name)
+        for artifact_path in artifacts:
+            artifact = component.project(artifact_path)
 
-            binary_path = component.project(binary_path)
-            sub_targets[short_name] = [RunInfo(args = [binary_path])]
+            parts = artifact_path.split("/")
+            sysroot_srcs["/".join(parts[1:])] = artifact
+            sub_targets[parts.pop()] = [RunInfo([artifact])]
+
+        if component_name == "rust-std":
+            sysroot_srcs["lib"] = component.project("rust-std-{}/lib".format(ctx.attrs.rustc_target_triple))
+
+    sysroot = ctx.actions.symlinked_dir("sysroot", sysroot_srcs)
+
+    print(pprint(sub_targets))
 
     return [
         DefaultInfo(
-            default_output = ctx.actions.symlinked_dir("dist", {}),
+            default_output = sysroot,
             sub_targets = sub_targets,
         ),
         RustToolchainInfo(
@@ -118,6 +126,10 @@ def _rust_toolchain_impl(
             doctests = ctx.attrs.doctests,
             default_edition = ctx.attrs.default_edition,
 
+            sysroot_path = sysroot,
+            # compiler = RunInfo(["rustc"]),
+            # rustdoc = RunInfo(["rustdoc"]),
+            # clippy_driver = RunInfo(["clippy-driver"]),
             compiler = sub_targets["rustc"][0],
             rustdoc = sub_targets["rustdoc"][0],
             clippy_driver = sub_targets["clippy"][0],
