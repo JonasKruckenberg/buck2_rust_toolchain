@@ -173,6 +173,7 @@ _rust_toolchain = rule(
         "_profile": attrs.string(),
         "_manifest": attrs.any(),
     },
+    is_toolchain_rule = True,
 )
 
 def _make_toolchain_rule(channel: str, profile: str, manifest: typing.Any):
