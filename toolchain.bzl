@@ -101,7 +101,7 @@ def _rust_toolchain_impl(
             artifact = component.project(artifact_path)
 
             parts = artifact_path.split("/")
-            sysroot_srcs["/".join(parts[1:])] = artifact
+            # sysroot_srcs["/".join(parts[1:])] = artifact
             sub_targets[parts.pop()] = [RunInfo([artifact])]
 
         if component_name == "rust-std":
