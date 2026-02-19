@@ -130,10 +130,10 @@ def _rust_toolchain_impl(
             compiler = sub_targets["rustc"][0],
             rustdoc = sub_targets["rustdoc"][0],
             clippy_driver = sub_targets["clippy"][0],
-            # miri_driver = sub_targets["miri"][0] if hasattr(sub_targets, "miri") else None,
+            miri_driver = sub_targets["miri"][0] if "miri" in sub_targets else None,
 
-            # "miri_sysroot_path": provider_field(Artifact | None, default = None),
-            # "miri_flags": provider_field(list[typing.Any], default = []),
+            miri_sysroot_path = ctx.attrs.miri_sysroot[DefaultInfo].default_outputs[0] if ctx.attrs.miri_sysroot else None,
+            miri_flags = ctx.attrs.miri_flags,
 
             allow_lints = ctx.attrs.allow_lints,
             warn_lints = ctx.attrs.warn_lints,
@@ -177,6 +177,9 @@ _rust_toolchain = rule(
         "warn_lints": attrs.list(attrs.string(), default = []),
         "deny_lints": attrs.list(attrs.string(), default = []),
         "deny_on_check_lints": attrs.list(attrs.string(), default = []),
+
+        "miri_sysroot": attrs.option(attrs.dep(providers = [DefaultInfo]), default = None),
+        "miri_flags": attrs.list(attrs.arg(), default = []),
 
         "_channel": attrs.string(),
         "_profile": attrs.string(),
