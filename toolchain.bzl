@@ -107,9 +107,8 @@ def _rust_toolchain_impl(
         if component_name == "rust-std":
             sysroot_srcs["lib"] = component.project("rust-std-{}/lib".format(ctx.attrs.rustc_target_triple))
 
-    sysroot = ctx.actions.symlinked_dir("sysroot", sysroot_srcs)
-
-    print(pprint(sub_targets))
+    sysroot_ident = "{}-{}-{}-sysroot".format(ctx.attrs._channel, ctx.attrs.rustc_target_triple, ctx.attrs._profile)
+    sysroot = ctx.actions.symlinked_dir(sysroot_ident, sysroot_srcs)
 
     return [
         DefaultInfo(
