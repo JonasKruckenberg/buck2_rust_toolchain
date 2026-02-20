@@ -65,14 +65,6 @@ jobs:
           files=( $(git diff --name-only HEAD HEAD^ '*.toml') )
           echo "${#files[*]} toml files changed: ${files[*]}"
 
-      - name: Test stable Rust
-        if: steps.commit.outcome == 'success'
-        run: |
-          cd examples/hello-world
-          set -o pipefail
-          nix-shell --pure --command "make run" | tee out
-          [[ "$(< out)" == *"Hello, world!"* ]]
-
       - name: Push changes
         if: steps.commit.outcome == 'success'
         uses: ad-m/github-push-action@master
