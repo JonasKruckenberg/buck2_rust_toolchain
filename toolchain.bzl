@@ -127,9 +127,6 @@ def _rust_toolchain_impl(
             default_edition = ctx.attrs.default_edition,
 
             sysroot_path = sysroot,
-            # compiler = RunInfo(["rustc"]),
-            # rustdoc = RunInfo(["rustdoc"]),
-            # clippy_driver = RunInfo(["clippy-driver"]),
             compiler = sub_targets["rustc"][0],
             rustdoc = sub_targets["rustdoc"][0],
             clippy_driver = sub_targets["clippy"][0],
