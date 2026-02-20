@@ -39,8 +39,8 @@ _DEFAULT_TRIPLE = select({
 _COMPONENT_ARTIFACTS = {
     "rustc": ["rustc/bin/rustc", "rustc/bin/rust-gdb", "rustc/bin/rust-gdbgui", "rustc/bin/rust-lldb", "rustc/bin/rustdoc"],
     "cargo": ["cargo/bin/cargo", "cargo/etc/bash_completion.d/cargo", "cargo/share/doc/cargo"],
-    "clippy-preview": ["clippy-preview/bin/cargo-clippy", "clippy-preview/bin/clippy-driver", "clippy-preview/share/doc/clippy"],
-    "rustfmt-preview": ["rustfmt-preview/bin/cargo-fmt", "rustfmt-preview/bin/rustfmt"],
+    "clippy-preview": ["clippy-preview/bin/clippy-driver", "clippy-preview/share/doc/clippy"],
+    "rustfmt-preview": ["rustfmt-preview/bin/rustfmt"],
     "miri-preview": ["miri-preview/bin/miri"],
     "rust-analyzer-preview": ["rust-analyzer-preview/bin/rust-analyzer"],
     "llvm-tools-preview": ["llvm-tools-preview/bin/llvm-objdump"],
@@ -68,10 +68,12 @@ def _rust_toolchain_impl(
     if profile_components == None:
         fail("Unknown profile '{}'. Available: {}".format(ctx.attrs._profile, manifest.profiles.keys()))
 
+
     resolved_components = []
     for comp in profile_components:
         actual = manifest.renames.get(comp, comp)
         resolved_components.append(actual)
+
 
     sub_targets = {}
     sysroot_srcs = {}
@@ -101,8 +103,7 @@ def _rust_toolchain_impl(
             artifact = component.project(artifact_path)
 
             parts = artifact_path.split("/")
-            # sysroot_srcs["/".join(parts[1:])] = artifact
-            sub_targets[parts.pop()] = [RunInfo([artifact])]
+            sub_targets[parts.pop()] = [RunInfo([artifact]), DefaultInfo(default_output = artifact)]
 
         if component_name == "rust-std":
             sysroot_srcs["lib"] = component.project("rust-std-{}/lib".format(ctx.attrs.rustc_target_triple))

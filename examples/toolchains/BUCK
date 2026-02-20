@@ -13,7 +13,7 @@ system_cxx_toolchain(
     visibility = ["PUBLIC"],
 )
 
-rust_toolchain.nightly.version("2026-02-11").default(
+rust_toolchain.nightly.version("2026-02-11").complete(
     name = "rust",
     visibility = ["PUBLIC"],
 )
