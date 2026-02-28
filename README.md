@@ -1,3 +1,6 @@
+> moved to https://github.com/JonasKruckenberg/buck2tf
+
+
 # hermetic buck2 rust toolchain
 
 ## Installation
